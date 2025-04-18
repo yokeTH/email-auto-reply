@@ -22,7 +22,7 @@ export async function email(message: any, env: any, ctx?: any): Promise<void> {
 	try {
 		const { from, to } = message;
 		const subject = message.headers.get('subject') || '(no subject)';
-		const raw = await new Response(message.raw).text();
+		const raw = (await new Response(message.raw).text()).replace(/utf-8/gi, 'utf-8');
 		const email = await simpleParser(raw);
 
 		// send notification to discord
