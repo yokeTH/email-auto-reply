@@ -51,8 +51,11 @@ export async function email(message: any, env: any, ctx?: any): Promise<void> {
 		}
 
 		// reply
-		const replyMessage = buildEmail(from, message.headers.get('Message-ID'));
-		await message.reply(replyMessage);
+		const isFirstMessage = !message.headers.get('In-Reply-To') && !message.headers.get('References');
+		if (isFirstMessage) {
+			const replyMessage = buildEmail(from, message.headers.get('Message-ID'));
+			await message.reply(replyMessage);
+		}
 
 		// forward
 		await message.forward(forward);
