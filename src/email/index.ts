@@ -14,10 +14,10 @@ interface EmailMessage {
 	reply(message: EmailMessage): Promise<void>;
 }
 
-export async function email(message: EmailMessage, env: any, ctx?: any): Promise<void> {
+export async function email(message: any, env: any, ctx?: any): Promise<void> {
 	const url = env.DISCORD_WEBHOOK_URL;
 	const forward = env.EMAIL_FORWARD_TO;
-	if (!url || !forward) throw new Error('Missing DISCORD_WEBHOOK_URL');
+	if (!url || !forward) throw new Error('Missing ENV');
 
 	try {
 		const { from, to } = message;

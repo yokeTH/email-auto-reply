@@ -11,8 +11,11 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
+import { email } from './email';
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		return new Response('Hello World!');
 	},
+	email,
 } satisfies ExportedHandler<Env>;
