@@ -13,7 +13,7 @@ Regards,
 
 `;
 
-export function buildEmail(from: string, name = 'Thanapon Johdee', addr = 'contact@yoke-th.me', msg = replyMsg): string {
+export function buildEmail(from: string, name = 'Thanapon Johdee', addr = 'contact@yoke-th.me', msg = replyMsg): EmailMessage {
 	const reply = createMimeMessage();
 	reply.setSender({ name, addr });
 	reply.setRecipient(from);
@@ -23,5 +23,7 @@ export function buildEmail(from: string, name = 'Thanapon Johdee', addr = 'conta
 		data: msg + name.split(' ')[0],
 	});
 
-	return reply.asRaw();
+	const replyMessage = new EmailMessage('test-contact@yoke-th.me', addr, reply.asRaw());
+
+	return replyMessage;
 }
