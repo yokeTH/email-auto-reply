@@ -1,6 +1,7 @@
 import { simpleParser } from 'mailparser';
 import { partition } from './partition';
 import { buildEmail } from './build-email';
+import { screenshot } from './screenshot';
 
 function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,6 +33,21 @@ export async function email(message: any, env: any, ctx?: any): Promise<void> {
 			}
 
 			await delay(500);
+		}
+
+		const isHtml = !!email.html;
+		if (isHtml) {
+			await delay(500);
+			const formData = new FormData();
+			const img = await screenshot(email.html || '', env, isHtml);
+			formData.append('file', img, 'email.png');
+			const response = await fetch(url, {
+				method: 'POST',
+				body: formData,
+			});
+			if (!response.ok) {
+				throw new Error(`failed to post message to discord webhook with status ${response.status}.`);
+			}
 		}
 
 		// reply
