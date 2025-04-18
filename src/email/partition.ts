@@ -7,16 +7,18 @@ export function partition(message: string): string[] {
 	let chunk = '';
 
 	for (const word of words) {
-		if ((chunk + ' ' + word).trim().length > CHUNK_SIZE) {
-			result.push(chunk.trim());
+		const nextChunk = chunk ? `${chunk} ${word}` : word;
+
+		if (nextChunk.length > CHUNK_SIZE) {
+			result.push(chunk);
 			chunk = word;
 		} else {
-			chunk += ' ' + word;
+			chunk = nextChunk;
 		}
 	}
 
 	if (chunk) {
-		result.push(chunk.trim());
+		result.push(chunk);
 	}
 
 	return result;

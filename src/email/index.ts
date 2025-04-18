@@ -1,17 +1,9 @@
 import { simpleParser } from 'mailparser';
 import { partition } from './partition';
-interface EmailMessage {
-	readonly from: string;
-	readonly to: string;
-	readonly headers: Headers;
-	readonly raw: ReadableStream;
-	readonly rawSize: number;
+import { buildEmail } from './build-email';
 
-	constructor(from: string, to: string, raw: ReadableStream | string): void;
-
-	setReject(reason: string): void;
-	forward(rcptTo: string, headers?: Headers): Promise<void>;
-	reply(message: EmailMessage): Promise<void>;
+function delay(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function email(message: any, env: any, ctx?: any): Promise<void> {
@@ -22,25 +14,29 @@ export async function email(message: any, env: any, ctx?: any): Promise<void> {
 	try {
 		const { from, to } = message;
 		const subject = message.headers.get('subject') || '(no subject)';
-		const raw = (await new Response(message.raw).text()).replace(/utf-8/gi, 'utf-8');
-		const email = await simpleParser(raw);
+		const rawText = await new Response(message.raw).text();
+		const email = await simpleParser(rawText);
 
 		// send notification to discord
 		const header = `# Email from ${from} to ${to}\n## Subject: ${subject}`;
-		const discordMessages = partition(email.text || '');
-		for (const msg in [header, ...discordMessages]) {
+		const discordMessages = [header, ...partition(email.text || '')];
+		for (const i in discordMessages) {
 			const response = await fetch(url, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ content: msg }),
+				body: JSON.stringify({ content: discordMessages[i] }),
 			});
+
 			if (!response.ok) {
 				throw new Error(`failed to post message to discord webhook with status ${response.status}.`);
 			}
+
+			await delay(500);
 		}
 
 		// reply
-		await message.reply(message);
+		const replyMessage = buildEmail(from, message.headers.get('Message-ID'));
+		await message.reply(replyMessage);
 
 		// forward
 		await message.forward(forward);

@@ -13,8 +13,9 @@ Regards,
 
 `;
 
-export function buildEmail(from: string, name = 'Thanapon Johdee', addr = 'contact@yoke-th.me', msg = replyMsg): EmailMessage {
+export function buildEmail(from: string, msgId: any, name = 'Thanapon Johdee', addr = 'contact@yoke-th.me', msg = replyMsg): EmailMessage {
 	const reply = createMimeMessage();
+	reply.setHeader('In-Reply-To', msgId);
 	reply.setSender({ name, addr });
 	reply.setRecipient(from);
 	reply.setSubject('Thanks for contacting us!');
@@ -23,7 +24,7 @@ export function buildEmail(from: string, name = 'Thanapon Johdee', addr = 'conta
 		data: msg + name.split(' ')[0],
 	});
 
-	const replyMessage = new EmailMessage('test-contact@yoke-th.me', addr, reply.asRaw());
+	const replyMessage = new EmailMessage(addr, from, reply.asRaw());
 
 	return replyMessage;
 }
