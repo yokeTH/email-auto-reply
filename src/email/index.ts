@@ -16,7 +16,8 @@ interface EmailMessage {
 
 export async function email(message: EmailMessage, env: any, ctx?: any): Promise<void> {
 	const url = env.DISCORD_WEBHOOK_URL;
-	if (!url) throw new Error('Missing DISCORD_WEBHOOK_URL');
+	const forward = env.EMAIL_FORWARD_TO;
+	if (!url || !forward) throw new Error('Missing DISCORD_WEBHOOK_URL');
 
 	try {
 		const { from, to } = message;
@@ -37,8 +38,21 @@ export async function email(message: EmailMessage, env: any, ctx?: any): Promise
 				throw new Error(`failed to post message to discord webhook with status ${response.status}.`);
 			}
 		}
-		
+
 		// reply
-		message.reply(message)
-	} catch {}
+		await message.reply(message);
+
+		// forward
+		await message.forward(forward);
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ content: error.stack }),
+			});
+
+			if (!response.ok) throw new Error('Failed to post error to Discord webhook.' + (await response.json()));
+		}
+	}
 }
